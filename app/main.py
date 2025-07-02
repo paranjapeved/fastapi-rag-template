@@ -1,31 +1,18 @@
 from fastapi import FastAPI
-from fastapi.middleware.cors import CORSMiddleware
-from mangum import Mangum
-
 from app import config
-from app.middleware import EndpointExecutionTimeLoggingMiddleware
-from app.routers import users
+from app.rag.agent import RagAgent
 
 app = FastAPI(openapi_url="/openapi.json" if config.enable_docs else None)
 
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=config.cors_origins,
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
 
-if config.profile_endpoints:
-    app.add_middleware(EndpointExecutionTimeLoggingMiddleware)
-
-
-app.include_router(users.router, prefix="/users")
+agent = RagAgent()
 
 
 @app.get("/")
 async def root() -> str:
-    return "Hello, Root!"
+    for step in agent.graph.stream(
+        {"messages": [{"role": "user", "content": "What is the best credit card in Canada?"}], "query": "What is the best credit card in Canada?"},
+        stream_mode="values",
+    ):
+        step["messages"][-1].pretty_print()
 
-
-handler = Mangum(app)

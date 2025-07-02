@@ -6,3 +6,10 @@ isort==5.13.2
 mypy==1.7.1
 pre-commit==3.6.0
 uvicorn[standard]==0.24.0.post1
+langchain-huggingface
+langchain-core
+langchain-community
+langchain
+langgraph
+httpx
+langchain-openai
