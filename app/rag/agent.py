@@ -17,11 +17,20 @@ from app.models.graph_state import GraphState
 class RagAgent():
 
     def __init__(self) -> None:
-        
+        """
+        Initialize the RAG agent.
+        This includes:
+        - Initializing the LLM
+        - Initializing the tools
+        - Initializing the vector store
+        - Initializing the graph builder
+        - Initializing the graph
+        """
         if not os.environ.get("OPENAI_API_KEY"):
             os.environ["OPENAI_API_KEY"] = getpass.getpass("Enter API key for OpenAI: ")
 
         self.llm = init_chat_model("gpt-4o-mini", model_provider="openai")
+        self.llm_with_tools = self.llm.bind_tools([self.retrieve])
         # Embeddings model
         self.embeddings = HuggingFaceEmbeddings(model_name="sentence-transformers/all-mpnet-base-v2")
 
@@ -51,6 +60,9 @@ class RagAgent():
 
         
     def format_content_to_docs(self, data) -> list[Document]:
+        """
+        Format the content to documents to be indexed to the vector store.
+        """
         docs = []
         for card in data:
             doc = Document(id = card["name"], page_content=card["description"], metadata = {"name":card["name"]})
@@ -58,7 +70,7 @@ class RagAgent():
         return docs
 
     def retrieve(self, state: GraphState):
-        """Retrieves credit card information related to a user query."""
+        """Tool retrieves credit card information related to a user query from the vector store."""
 
         query = state.query
         retrieved_docs = self.vector_store.similarity_search(query, k=3)
@@ -72,16 +84,15 @@ class RagAgent():
 
     # Step 1: Generate an AIMessage that may include a tool-call to be sent.
     def query_or_respond(self, state: GraphState):
-        """Generate tool call for retrieval or respond."""
-        llm_with_tools = self.llm.bind_tools([self.retrieve])
-        response = llm_with_tools.invoke(state.messages)
+        """Generate tool call for retrieval"""
+        response = self.llm_with_tools.invoke(state.messages)
         # MessagesState appends messages to state instead of overwriting
         return {"messages": [response]}
 
 
     # Step 3: Generate a response using the retrieved content.
     def generate(self, state: GraphState):
-        """Generate answer."""
+        """Generate answer using the retrieved content."""
         # Get generated ToolMessages
         recent_tool_messages = []
         for message in reversed(state.messages):
