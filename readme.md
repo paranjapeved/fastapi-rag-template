@@ -127,3 +127,13 @@ You will see the AI generated response in the Response section below:
 -   [langgraph](https://academy.langchain.com/courses/intro-to-langgraph)
 -   [RAG](https://python.langchain.com/docs/tutorials/rag/)
 -   [fastapi](https://www.tutorialspoint.com/fastapi/index.htm)
+
+## Contribute
+If you would like to contribute to this template please open an PR.
+Scope:
+- add docker and kubernetes deployment options
+- add a standalone vector store (currently using in-memory vector store)
+- store and recall user chat history when generating responses
+- add more credit card information
+
+If you found this repo useful please star and cite it!!
